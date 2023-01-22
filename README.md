@@ -1,5 +1,21 @@
-# techboost-echo
+# techboost-homework
+It is an exercise for ca techboost course of golang introduction.
 
+It is a quick-and-dirty demo code! Use Tokyo open data to create a simple page.
+
+Do this exercise to learn:
+- Basics of golang
+- Some basics of AWS: Amazon RDS for PostgreSQL, Lambda, [SAM/Serverless application model](https://docs.aws.amazon.com/serverless-application-model)
+
+## TODO
+
+- add PostgreSQL code
+- Lambda cron
+- refactor
+
+----------
+
+Use [SAM](https://docs.aws.amazon.com/serverless-application-model)'s hello-world sample t
 This is a sample template for techboost-echo - Below is a brief explanation of what we have generated for you:
 
 ```bash
