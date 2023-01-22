@@ -37,7 +37,10 @@ func HtmlTemplate() string {
 </head>
 <body>
     <h1>東京都イベント一覧</h1>
-    <a href='/echo'>トップへ戻る</a>
+    <a href='/Prod/echo?searchID=10'>直近10件イベント</a><br>
+	<a href='/Prod/echo?searchID=20'>直近20件イベント</a><br>
+    <a href='/Prod/echo?searchID=0'>全部のイベント</a>
+
     <ul>
         {{ range . }}
         <li>
@@ -57,13 +60,18 @@ func HtmlTemplate() string {
 }
 
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	//searchId, ok := request.PathParameters["searchID"]
+	searchId, ok := request.QueryStringParameters["searchID"]
+	if !ok {
+		searchId = "10"
+	}
+
 	resp, err := http.Get(URL)
 	if err != nil {
 		return events.APIGatewayProxyResponse{}, err
 	}
 	defer resp.Body.Close()
 
-	//body, _ := io.ReadAll(resp.Body)
 	r := csv.NewReader(transform.NewReader(resp.Body, japanese.ShiftJIS.NewDecoder()))
 	records, err := r.ReadAll()
 	if err != nil {
@@ -94,13 +102,33 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	fmt.Printf("records number: %d\n", len(recordObjects))
 	fmt.Printf("last record: %v\n", recordObjects[len(recordObjects)-1])
 
+	var selectedRecords []Record
+	switch searchId {
+	case "0": // All of items
+		selectedRecords = recordObjects
+	case "10": // Latest 10 items
+		if len(recordObjects) >= 10 {
+			selectedRecords = recordObjects[:10]
+		} else {
+			selectedRecords = recordObjects
+		}
+	case "20": // Latest 20 items
+		if len(recordObjects) >= 20 {
+			selectedRecords = recordObjects[:20]
+		} else {
+			selectedRecords = recordObjects
+		}
+	default:
+		selectedRecords = recordObjects[:10]
+	}
+
 	tpl, err := template.New("").Parse(HtmlTemplate())
 	if err != nil {
 		return events.APIGatewayProxyResponse{}, err
 	}
 
 	b := bytes.NewBufferString("")
-	if err := tpl.Execute(b, recordObjects); err != nil {
+	if err := tpl.Execute(b, selectedRecords); err != nil {
 		return events.APIGatewayProxyResponse{}, err
 	}
 
